@@ -254,16 +254,18 @@ int main(int argc, char *argv[])
 	gettimeofday(&tv, NULL);
 	srand(tv.tv_sec + tv.tv_usec);
 #endif
-
+/* get space for db, fill in 0s */
 	memset(&int_db, 0, sizeof(struct mosquitto_db));
-
+/* init network stuff */
+/* TODO: DLMZ document net_init */
 	_mosquitto_net_init();
 
 	mqtt3_config_init(&config);
+/* pass args to dedicated parser - rc to contain enum val designating status */
 	rc = mqtt3_config_parse_args(&config, argc, argv);
 	if(rc != MOSQ_ERR_SUCCESS) return rc;
 	int_db.config = &config;
-
+/* config set within init mqtt3_config_init determine if to be 'daemon'-ized*/
 	if(config.daemon){
 		mosquitto__daemonise();
 	}
@@ -278,7 +280,7 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 	}
-
+/* populate db with init values and stufF */
 	rc = mqtt3_db_open(&config, &int_db);
 	if(rc != MOSQ_ERR_SUCCESS){
 		_mosquitto_log_printf(NULL, MOSQ_LOG_ERR, "Error: Couldn't open database.");
@@ -292,6 +294,8 @@ int main(int argc, char *argv[])
 		return rc;
 	}
 	_mosquitto_log_printf(NULL, MOSQ_LOG_INFO, "mosquitto version %s (build date %s) starting", VERSION, TIMESTAMP);
+/* if config_file set get to set it (no err, tho) *
+ * if not, use defaults that came with config     */
 	if(config.config_file){
 		_mosquitto_log_printf(NULL, MOSQ_LOG_INFO, "Config loaded from %s.", config.config_file);
 	}else{
